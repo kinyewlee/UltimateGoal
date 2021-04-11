@@ -1,0 +1,5 @@
+package org.firstinspires.aztec;
+
+public class Config {
+    public static final String VUFORIA_KEY  = "AYuhzJv/////AAABmeg8aNmI7008toUzc6hhMIgtAFhnIF3mx6avMFksv/Jm2qTivu8ialyM7onEEB2F7JVsgl3MXkaV1ZooYDc3fvW6+c3motqWyDpAWC9Z8PJxUHcn+6o+iMkwSyPNYQYQLohALfEcQ0I/HmCxRj7SraSmcssIzSbvdnvMHspynndi47Tg+Ie66vc2EPVhSf9oMOGfIY9KqzhfIfY2QhG58tFYPusqypoqWW6gKBe4NkdcVMIh0HvirCGID/zdeJ9xyp8EoCN3JwR8v9IwGzZHdz0vDVOcnmcJaiYuiAXtpuQklPJGclN93y/W9UBVciFQsxmdcxD4jjsx9XGHANHHCUiyeFs1Y6SI8/0JcDeeMCK9";
+}
