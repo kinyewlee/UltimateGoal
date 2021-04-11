@@ -6,6 +6,7 @@ import com.qualcomm.ftccommon.SoundPlayer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.firstinspires.aztec.DistanceDetector;
 import org.firstinspires.aztec.RingDetector;
 import org.firstinspires.aztec.RingLayout;
 
@@ -22,6 +23,7 @@ public class Red_Autonomous extends AztecOpMode {
         robot = new Robot(hardwareMap, true);
         robot.setDriveZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         RingDetector ringDetector = new RingDetector(this, 0.65f);
+        DistanceDetector wobbleDetector = new DistanceDetector(robot.wobbleRange, 5);
 
         SharedPreferences sharedPreferences = hardwareMap.appContext.getSharedPreferences("Aztec", MODE_PRIVATE);
 
@@ -56,13 +58,13 @@ public class Red_Autonomous extends AztecOpMode {
             sleep(500l);
 
             //align first power shot
-            gyroSlide(0.34f, 16.3, 0, 3, null);
+            gyroSlide(0.34f, 16.2, 0, 4, null);
 
             //spin up shooter
             robot.shooter.setVelocity(1950d);
 
             gyroDrive(0.5f, 66, 0, 6, null);
-            gyroTurn(0.5f, 0f, 1);
+            gyroTurn(0.5f, 0f, 2);
 
             //wait to shooter to spin up
             while (robot.shooter.getVelocity() < 1950d) {
@@ -236,7 +238,7 @@ public class Red_Autonomous extends AztecOpMode {
                 robot.wrist.setPosition(1d);
                 robot.claw.setPosition(0.65d);
                 sleep(500);
-                gyroSlide(0.1d, 4d, -180d, 1, null);
+                gyroSlide(0.1d, 4d, -180d, 1, wobbleDetector);
 
                 robot.claw.setPosition(0d);
                 sleep(500);

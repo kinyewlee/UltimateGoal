@@ -5,26 +5,14 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.aztec.Config;
+import org.firstinspires.aztec.DistanceDetector;
 import org.firstinspires.aztec.UltimateGoalNavigator;
-import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
-import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
 @TeleOp(name = "Gamepad", group = "Linear Opmode")
 public class Gamepad extends LinearOpMode {
@@ -32,6 +20,7 @@ public class Gamepad extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         UltimateGoalNavigator navigator = new UltimateGoalNavigator(hardwareMap);
         Robot robot = new Robot(hardwareMap, false);
+        DistanceDetector wobbleDetector = new DistanceDetector(robot.wobbleRange, 25);
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
@@ -68,14 +57,15 @@ public class Gamepad extends LinearOpMode {
                     VectorF translation = navigator.lastLocation.getTranslation();
                     Orientation rotation = Orientation.getOrientation(navigator.lastLocation, EXTRINSIC, XYZ, DEGREES);
                     // calculate the difference between destination and robot coordinates
-                    double xGap = Range.clip((translation.get(0) / navigator.mmPerInch) - 8, -10, 10d);
+                    double xGap = Range.clip((translation.get(0) / navigator.mmPerInch) - 10, -10, 10d);
                     double yGap = Range.clip((translation.get(1) / navigator.mmPerInch) + 40, -10d, 10d);
                     double hGap = Range.clip(rotation.thirdAngle - 90d, -5d, 5d);
                     //move along the axes according to the calculated difference
                     if ((adjustMode == 0 || adjustMode == 1) && Math.abs(xGap) > 1d) {
-                        drive = Range.scale(-xGap, -10d, 10d, -1d, 1d);
+                        drive = Range.scale(-xGap, -10d, 10d, -0.5d, 0.5d);
                         adjustMode = 1;
-                    } else if ((adjustMode == 0 || adjustMode == 2) && Math.abs(hGap) > 0.7d) {
+                    } else
+                        if ((adjustMode == 0 || adjustMode == 2) && Math.abs(hGap) > 0.7d) {
                         turn = Range.scale(hGap, -5d, 5d, -0.15d, 0.15d);
                         adjustMode = 2;
                     } else if ((adjustMode == 0 || adjustMode == 3) && Math.abs(yGap) > 1d) {
@@ -90,6 +80,14 @@ public class Gamepad extends LinearOpMode {
                 }
             } else {
                 adjustMode = 0;
+            }
+
+            if (wobbleDetector.getCurrentDistance() < 10d && (side < -0.05d)) {
+                side = -0.05d;
+            } else if (wobbleDetector.getCurrentDistance() < 40d && (side < -0.2d)) {
+                side = -0.2d;
+            } else if (wobbleDetector.getCurrentDistance() < 70d && (side < -0.4d)) {
+                side = -0.4d;
             }
 
             pLeftFront = Range.clip(drive + turn + side, -1.0, 1.0);
@@ -211,8 +209,8 @@ public class Gamepad extends LinearOpMode {
                     robot.shooter.getVelocity());
             telemetry.addData("Roller", "Power:%.2f, Velocity:%.2f",
                     robot.roller.getPower(), robot.roller.getVelocity());
-            telemetry.addData("Wobble", "Arm:%.2f Claw: %.2f",
-                    robot.wrist.getPosition(), robot.claw.getPosition());
+            telemetry.addData("Wobble", "Arm:%.2f Dist:%.1f Claw: %.2f",
+                    robot.wrist.getPosition(), wobbleDetector.getCurrentDistance(), robot.claw.getPosition());
 
             // Provide feedback as to where the robot is located (if we know).
             if (navigator.targetVisible) {

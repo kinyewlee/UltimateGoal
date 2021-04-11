@@ -8,6 +8,7 @@ import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -29,6 +30,7 @@ public class Robot {
     Servo wrist;
     Servo claw;
     Servo trigger;
+    DistanceSensor wobbleRange;
 
     private boolean soundPlaying = false;
     private int beepSoundID, fireSoundID;
@@ -118,6 +120,8 @@ public class Robot {
         wrist = hardwareMap.servo.get("wrist");
         claw = hardwareMap.servo.get("claw");
         trigger = hardwareMap.servo.get("ringFeeder");
+
+        wobbleRange = hardwareMap.get(DistanceSensor.class, "wobbleRange");
 
         //Initialize imu
         initIMU(hardwareMap);
