@@ -5,15 +5,17 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.aztec.AztecMecanumDrive;
 import org.firstinspires.aztec.IObjectDetector;
 
 public abstract class AztecOpMode extends LinearOpMode {
     /* Declare OpMode members. */
+    AztecMecanumDrive drivetrain;
     Robot robot;
 
     private static final double P_TURN_COEFF = 0.05d;     // Larger is more responsive, but also less stable
     private static final double P_DRIVE_COEFF = 0.09d;     // Larger is more responsive, but also less stable
-    private static final double HEADING_THRESHOLD = 0.4d;      // As tight as we can make it with an integer gyro
+    private static final double HEADING_THRESHOLD = 0.35d;      // As tight as we can make it with an integer gyro
 
     protected ElapsedTime runtime = new ElapsedTime();
 
@@ -26,20 +28,20 @@ public abstract class AztecOpMode extends LinearOpMode {
         // Ensure that the opmode is still active
         if (opModeIsActive()) {
             // Set Target and Turn On RUN_TO_POSITION
-            robot.setDriveTarget(distance, true);
-            robot.setDriveMode(DcMotor.RunMode.RUN_TO_POSITION);
+            drivetrain.setDriveTarget(distance, true);
+            drivetrain.setDriveMode(DcMotor.RunMode.RUN_TO_POSITION);
 
             // start motion.
             double counter = 0d;
             runtime.reset();
             double powerToSet = Math.max(speed, 0.5d);
-            robot.setDrivePower(powerToSet, powerToSet, powerToSet, powerToSet);
+            drivetrain.setDrivePower(powerToSet, powerToSet, powerToSet, powerToSet);
             ElapsedTime driveTime = new ElapsedTime();
 
             // keep looping while we are still active, and BOTH motors are running.
             while (opModeIsActive() &&
                     runtime.seconds() < timeoutS &&
-                    robot.isDriveBusy()) {
+                    drivetrain.isDriveBusy()) {
                 idle();
 
                 if (objectDetector != null && objectDetector.objectDetected()) {
@@ -49,11 +51,11 @@ public abstract class AztecOpMode extends LinearOpMode {
             }
 
             // Stop all motion;
-            robot.setDrivePower(0d, 0d, 0d, 0d);
+            drivetrain.setDrivePower(0d, 0d, 0d, 0d);
 
             // Turn off RUN_TO_POSITION
-            robot.setDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            robot.setDriveMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            drivetrain.setDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            drivetrain.setDriveMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
     }
 
@@ -67,16 +69,16 @@ public abstract class AztecOpMode extends LinearOpMode {
         // Ensure that the opmode is still active
         if (opModeIsActive()) {
             // Set Target and Turn On RUN_TO_POSITION
-            robot.setDriveTarget(distance, false);
-            robot.setDriveMode(DcMotor.RunMode.RUN_TO_POSITION);
+            drivetrain.setDriveTarget(distance, false);
+            drivetrain.setDriveMode(DcMotor.RunMode.RUN_TO_POSITION);
 
             // reset the timeout time and start motion.
             runtime.reset();
-            robot.setDrivePower(speed, speed, speed, speed);
+            drivetrain.setDrivePower(speed, speed, speed, speed);
             // keep looping while we are still active, and BOTH motors are running.
             while (opModeIsActive() &&
                     runtime.seconds() < timeoutS &&
-                    robot.isDriveBusy()) {
+                    drivetrain.isDriveBusy()) {
 
                 idle();
 
@@ -85,8 +87,7 @@ public abstract class AztecOpMode extends LinearOpMode {
                 double steer;
                 if (Math.abs(speed) < 0.2d) {
                     steer = getSteer(error, P_DRIVE_COEFF, Math.abs(speed));
-                }
-                else {
+                } else {
                     steer = getSteer(error, P_DRIVE_COEFF);
                 }
 
@@ -112,18 +113,18 @@ public abstract class AztecOpMode extends LinearOpMode {
                     successful = false;
                     break;
                 }
-                robot.setDrivePower(speedFL,
+                drivetrain.setDrivePower(speedFL,
                         speedFR,
                         speedRL,
                         speedRR);
             }
 
             // Stop all motion;
-            robot.setDrivePower(0d, 0d, 0d, 0d);
+            drivetrain.setDrivePower(0d, 0d, 0d, 0d);
 
             // Turn off RUN_TO_POSITION
-            robot.setDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            robot.setDriveMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            drivetrain.setDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            drivetrain.setDriveMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
 
         return successful;
@@ -141,7 +142,7 @@ public abstract class AztecOpMode extends LinearOpMode {
         }
 
         // Stop all motion;
-        robot.setDrivePower(0d, 0d, 0d, 0d);
+        drivetrain.setDrivePower(0d, 0d, 0d, 0d);
     }
 
     private boolean onHeading(double speed, double angle) {
@@ -164,7 +165,7 @@ public abstract class AztecOpMode extends LinearOpMode {
         }
 
         // Send desired speeds to motors.
-        robot.setDrivePower(speedFL, speedFR,
+        drivetrain.setDrivePower(speedFL, speedFR,
                 speedRL,
                 speedRR);
 
@@ -175,7 +176,7 @@ public abstract class AztecOpMode extends LinearOpMode {
         double robotError;
 
         // calculate error in -179 to +180 range  (
-        robotError = targetAngle - robot.getHeading();
+        robotError = targetAngle - drivetrain.getHeading();
         while (robotError > 180) robotError -= 360;
         while (robotError <= -180) robotError += 360;
         return robotError;

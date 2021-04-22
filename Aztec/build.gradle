@@ -8,14 +8,4 @@ android {
     }
 }
 
-repositories {
-    maven { url = "https://dl.bintray.com/first-tech-challenge/ftcsdk/" }
-
-    flatDir {
-        dirs '../libs'
-    }
-}
-
-dependencies {
-    implementation 'org.firstinspires.ftc:RobotCore:6.2.1'
-}
+apply from: '../build.dependencies.gradle'

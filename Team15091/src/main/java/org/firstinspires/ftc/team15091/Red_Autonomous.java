@@ -6,6 +6,7 @@ import com.qualcomm.ftccommon.SoundPlayer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.firstinspires.aztec.AztecMecanumDrive;
 import org.firstinspires.aztec.DistanceDetector;
 import org.firstinspires.aztec.RingDetector;
 import org.firstinspires.aztec.RingLayout;
@@ -20,8 +21,9 @@ public class Red_Autonomous extends AztecOpMode {
          * Initialize the standard drive system variables.
          * The init() method of the hardware class does most of the work here
          */
-        robot = new Robot(hardwareMap, true);
-        robot.setDriveZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        drivetrain = new AztecMecanumDrive(hardwareMap, true);
+        robot = new Robot(hardwareMap);
+        drivetrain.setDriveZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         RingDetector ringDetector = new RingDetector(this, 0.65f);
         DistanceDetector wobbleDetector = new DistanceDetector(robot.wobbleRange, 5);
 
@@ -30,7 +32,7 @@ public class Red_Autonomous extends AztecOpMode {
         // Wait for the game to start (driver presses PLAY)
         // Abort this loop is started or stopped.
         while (!(isStarted() || isStopRequested())) {
-            telemetry.addData("Heading: ", "%.4f", robot.getHeading());
+            telemetry.addData("Heading: ", "%.4f", drivetrain.getHeading());
             telemetry.addData("Ring Detect", ringDetector.objectDetected().toString());
             telemetry.update();
             idle();
@@ -58,7 +60,7 @@ public class Red_Autonomous extends AztecOpMode {
             sleep(500l);
 
             //align first power shot
-            gyroSlide(0.34f, 16.2, 0, 4, null);
+            gyroSlide(0.34f, 16.05, 0, 4, null);
 
             //spin up shooter
             robot.shooter.setVelocity(1950d);
@@ -80,7 +82,7 @@ public class Red_Autonomous extends AztecOpMode {
             robot.trigger.setPosition(0.5d);
 
             //align second power shot
-            gyroSlide(0.4f, 8.9d, 0, 3, null);
+            gyroSlide(0.4f, 8.91d, 0, 3, null);
             gyroTurn(0.5f, 0f, 1);
 
             //spin up shooter
@@ -156,7 +158,7 @@ public class Red_Autonomous extends AztecOpMode {
                 sleep(200);
 
                 //drive behind white line
-                gyroDrive(0.85f, 29.2d, -2d, 3, null);
+                gyroDrive(0.85f, 29d, -2d, 3, null);
                 gyroTurn(0.6f, -1.8d, 2);
 
                 //shoot 1st ring
@@ -193,7 +195,7 @@ public class Red_Autonomous extends AztecOpMode {
                 //release wobble goal
                 robot.claw.setPosition(0.65d);
                 sleep(500);
-                robot.wrist.setPosition(0.75d);
+                robot.wrist.setPosition(0.32d);
                 robot.claw.setPosition(0d);
 
                 gyroSlide(0.3f, -6, -90, 5, null);
@@ -205,7 +207,7 @@ public class Red_Autonomous extends AztecOpMode {
 
                 robot.shooter.setVelocity(2080d);
 
-                gyroDrive(0.8f, 28d, 0, 6, null);
+                gyroDrive(0.8f, 27.5d, 0, 6, null);
                 gyroTurn(0.7f, -3d, 1);
 
                 //shoot 1 ring
@@ -265,7 +267,7 @@ public class Red_Autonomous extends AztecOpMode {
             }
 
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putLong("Heading", (long) robot.getHeading());
+            editor.putLong("Heading", (long) drivetrain.getHeading());
             editor.commit();
         }
     }
