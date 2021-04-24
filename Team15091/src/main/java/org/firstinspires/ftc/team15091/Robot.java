@@ -62,7 +62,7 @@ public class Robot {
         beep(0);
     }
 
-    public void beep(int type) {
+    public synchronized void beep(int type) {
         if (!soundPlaying) {
             soundPlaying = true;
             int soundID = beepSoundID;

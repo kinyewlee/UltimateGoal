@@ -38,6 +38,10 @@ public class Gamepad extends LinearOpMode {
         turnPidController.setOutputBounds(-0.7d, 0.7d);
         strafePidController.setOutputBounds(-0.8d, 0.8d);
 
+        telemetry.addData("PIDF", robot.shooter.getPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION));
+        telemetry.addData("PIDF", robot.shooter.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER));
+        telemetry.update();
+
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
@@ -125,14 +129,14 @@ public class Gamepad extends LinearOpMode {
             drivetrain.setDrivePower(pLeftFront, pRightFront, pLeftRear, pRightRear);
 
             if (gamepad1.left_trigger > 0.7d) {
-                robot.shooter.setVelocity(2080d);
-                robot.roller.setPower(0d);
-                if (robot.shooter.getVelocity() >= 2080d) {
+                robot.shooter.setVelocity(1805d);
+                //robot.roller.setPower(0d);
+                if (robot.shooter.getVelocity() >= 1805d) {
                     robot.beep(1);
                 }
             } else if (gamepad1.left_trigger > 0.2d) {
-                robot.shooter.setVelocity(1800d);
-                robot.roller.setPower(0d);
+                robot.shooter.setVelocity(1600d);
+                //robot.roller.setPower(0d);
             } else {
                 robot.shooter.setVelocity(0d);
             }

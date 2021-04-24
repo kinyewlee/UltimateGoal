@@ -60,16 +60,16 @@ public class Red_Autonomous extends AztecOpMode {
             sleep(500l);
 
             //align first power shot
-            gyroSlide(0.34f, 16.05, 0, 4, null);
+            gyroSlide(0.34f, 14.8d, 0, 4, null);
 
             //spin up shooter
-            robot.shooter.setVelocity(1950d);
+            robot.shooter.setVelocity(1820d);
 
-            gyroDrive(0.5f, 66, 0, 6, null);
-            gyroTurn(0.5f, 0f, 2);
+            gyroDrive(0.5f, 66d, 0, 6, null);
+            //gyroTurn(0.5f, 0f, 2);
 
             //wait to shooter to spin up
-            while (robot.shooter.getVelocity() < 1950d) {
+            while (robot.shooter.getVelocity() < 1820d) {
                 idle();
             }
 
@@ -86,10 +86,10 @@ public class Red_Autonomous extends AztecOpMode {
             gyroTurn(0.5f, 0f, 1);
 
             //spin up shooter
-            robot.shooter.setVelocity(1940d);
+            robot.shooter.setVelocity(1810d);
 
             //wait to shooter to spin up
-            while (robot.shooter.getVelocity() < 1940d) {
+            while (robot.shooter.getVelocity() < 1810d) {
                 idle();
             }
 
@@ -106,10 +106,10 @@ public class Red_Autonomous extends AztecOpMode {
             gyroTurn(0.5f, 0f, 1);
 
             //spin up shooter
-            robot.shooter.setVelocity(1931d);
+            robot.shooter.setVelocity(1810d);
 
             //wait to shooter to spin up
-            while (robot.shooter.getVelocity() < 1931d) {
+            while (robot.shooter.getVelocity() < 1810d) {
                 idle();
             }
 
@@ -133,7 +133,7 @@ public class Red_Autonomous extends AztecOpMode {
                 robot.winch.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 robot.winch.setPower(0.2d);
 
-                gyroDrive(1f, 52.7d, -90, 4, null);
+                gyroDrive(0.9f, 52.2d, -90, 4, null);
 
                 //release wobble goal
                 robot.claw.setPosition(0.65d);
@@ -142,11 +142,11 @@ public class Red_Autonomous extends AztecOpMode {
                 robot.claw.setPosition(0d);
 
                 //move towards more ring
-                gyroDrive(0.9f, -21.5d, -90, 2, null);
+                gyroDrive(0.9f, -21.8d, -90, 2, null);
                 gyroTurn(0.9f, 0, 1);
 
                 //shoot high goal
-                robot.shooter.setVelocity(2080d);
+                robot.shooter.setVelocity(1810d);
 
                 gyroDrive(0.9f, -60.2d, 0, 5, null);
 
@@ -154,18 +154,19 @@ public class Red_Autonomous extends AztecOpMode {
                 robot.roller.setPower(1d);
                 sleep(300);
 
-                gyroDrive(0.1f, -15.4d, 0, 4, null);
-                sleep(200);
+                gyroDrive(0.1f, -15d, 0, 4, null);
+                sleep(100);
 
                 //drive behind white line
-                gyroDrive(0.85f, 29d, -2d, 3, null);
-                gyroTurn(0.6f, -1.8d, 2);
+                gyroDrive(0.85f, 28.7d, -2d, 3, null);
+                sleep(100);
+                gyroTurn(0.6f, -1.9d, 2);
 
                 //shoot 1st ring
                 robot.trigger.setPosition(0d);
                 sleep(300);
                 robot.trigger.setPosition(0.5d);
-                sleep(600);
+                sleep(500);
 
                 robot.roller.setPower(0d);
 
@@ -173,11 +174,11 @@ public class Red_Autonomous extends AztecOpMode {
                 robot.trigger.setPosition(0d);
                 sleep(300);
                 robot.trigger.setPosition(0.5d);
-                sleep(700);
+                sleep(500);
 
                 //shoot 3rd ring
                 robot.trigger.setPosition(0d);
-                sleep(300);
+                sleep(500);
 
                 //park
                 gyroDrive(1f, 10d, 0, 6, null);
@@ -205,7 +206,7 @@ public class Red_Autonomous extends AztecOpMode {
                 gyroDrive(0.7f, -45d, 0, 6, null);
                 gyroDrive(0.1f, -4d, 0, 1, null);
 
-                robot.shooter.setVelocity(2080d);
+                robot.shooter.setVelocity(1810d);
 
                 gyroDrive(0.8f, 27.5d, 0, 6, null);
                 gyroTurn(0.7f, -3d, 1);

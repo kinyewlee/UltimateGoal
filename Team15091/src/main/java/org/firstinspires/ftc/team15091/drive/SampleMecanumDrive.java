@@ -26,6 +26,7 @@ import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryAcceleration
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryVelocityConstraint;
 import com.acmerobotics.roadrunner.util.NanoClock;
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -34,7 +35,13 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.team15091.util.DashboardUtil;
 import org.firstinspires.ftc.team15091.util.LynxModuleUtil;
 
@@ -131,11 +138,12 @@ public class SampleMecanumDrive extends MecanumDrive {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
+        initIMU(hardwareMap);
         // TODO: adjust the names of the following hardware devices to match your configuration
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
-        imu.initialize(parameters);
+//        imu = hardwareMap.get(BNO055IMU.class, "imu");
+//        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+//        parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
+//        imu.initialize(parameters);
 
         // TODO: if your hub is mounted vertically, remap the IMU axes so that the z-axis points
         // upward (normal to the floor) using a command like the following:
@@ -170,6 +178,29 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         // TODO: if desired, use setLocalizer() to change the localization method
         // for instance, setLocalizer(new ThreeTrackingWheelLocalizer(...));
+    }
+
+    private void initIMU(HardwareMap hardwareMap) {
+        // Set up the parameters with which we will use our IMU. Note that integration
+        // algorithm here just reports accelerations to the logcat log; it doesn't actually
+        // provide positional information.
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
+        parameters.loggingEnabled = false;
+        parameters.loggingTag = "IMU";
+        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+
+        // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
+        // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
+        // and named "imu".
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
+
+        while (!imu.isGyroCalibrated()) {
+            Thread.yield();
+        }
     }
 
     public TrajectoryBuilder trajectoryBuilder(Pose2d startPose) {
@@ -386,11 +417,11 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     @Override
-    public void setMotorPowers(double v, double v1, double v2, double v3) {
-        leftFront.setPower(v);
-        leftRear.setPower(v1);
-        rightRear.setPower(v2);
-        rightFront.setPower(v3);
+    public void setMotorPowers(double vLF, double vLR, double vRR, double vRF) {
+        leftFront.setPower(vLF);
+        leftRear.setPower(vLR);
+        rightRear.setPower(vRR);
+        rightFront.setPower(vRF);
     }
 
     @Override
@@ -419,5 +450,71 @@ public class SampleMecanumDrive extends MecanumDrive {
         // flat on a surface
 
         return (double) imu.getAngularVelocity().zRotationRate;
+    }
+
+    protected ElapsedTime runtime = new ElapsedTime();
+    private static final double P_TURN_COEFF = 0.05d;     // Larger is more responsive, but also less stable
+    private static final double P_DRIVE_COEFF = 0.09d;     // Larger is more responsive, but also less stable
+    private static final double HEADING_THRESHOLD = 0.35d;      // As tight as we can make it with an integer gyro
+
+    public final void gyroTurn(double speed, double angle, double timeoutS) {
+
+        runtime.reset();
+        // keep looping while we are still active, and not on heading.
+        while (runtime.seconds() < timeoutS &&
+                !onHeading(speed, angle)) {
+            // Update telemetry & Allow time for other processes to run.
+            Thread.yield();
+        }
+
+        // Stop all motion;
+        setMotorPowers(0d, 0d, 0d, 0d);
+    }
+
+    private boolean onHeading(double speed, double angle) {
+        double error;
+        double steer;
+        boolean onTarget = false;
+        double speedFL, speedFR, speedRL, speedRR;
+
+        // determine turn power based on +/- error
+        error = getError(angle);
+
+        if (Math.abs(error) <= HEADING_THRESHOLD) {
+            steer = 0.0;
+            speedFL = speedFR = speedRL = speedRR = 0.0;
+            onTarget = true;
+        } else {
+            steer = getSteer(error, P_TURN_COEFF);
+            speedFR = speedRR = speed * steer;
+            speedFL = speedRL = speed * -steer;
+        }
+
+        // Send desired speeds to motors.
+        setMotorPowers(speedFL,
+                speedRL,
+                speedRR,
+                speedFR);
+
+        return onTarget;
+    }
+
+    public double getHeading() {
+        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        return AngleUnit.DEGREES.fromUnit(angles.angleUnit, angles.firstAngle);
+    }
+
+    private double getError(double targetAngle) {
+        double robotError;
+
+        // calculate error in -179 to +180 range  (
+        robotError = targetAngle - getHeading();
+        while (robotError > 180) robotError -= 360;
+        while (robotError <= -180) robotError += 360;
+        return robotError;
+    }
+
+    private double getSteer(double error, double PCoeff) {
+        return Range.clip(error * PCoeff, -1d, 1d);
     }
 }
